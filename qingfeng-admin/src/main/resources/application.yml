@@ -1,0 +1,83 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: qingfeng
+
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ANT_PATH_MATCHER
+
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:8080   #sentinel地址
+        heartbeat-interval-ms: 500
+      #eager: true
+
+  datasource:
+    dynamic:
+      p6spy: true
+      hikari:
+        connection-timeout: 30000
+        max-lifetime: 1800000
+        max-pool-size: 15
+        min-idle: 5
+        connection-test-query: select 1
+        pool-name: QingfengHikariCP
+      primary: base
+      datasource:
+        base:
+          username: root
+          password: Root@123
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://localhost:3306/qingfeng_admin?useUnicode=true&characterEncoding=UTF-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8&allowPublicKeyRetrieval=true
+#        slave:
+#          username: root
+#          password: Root@123
+#          driver-class-name: com.mysql.cj.jdbc.Driver
+#          url: jdbc:mysql://localhost:3306/qingfeng_slave?useUnicode=true&characterEncoding=UTF-8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8&allowPublicKeyRetrieval=true
+
+  servlet:
+    multipart:
+      max-file-size : 100MB
+      max-request-size : 100MB
+
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    lettuce:
+      pool:
+        min-idle: 8
+        max-idle: 500
+        max-active: 2000
+        max-wait: 10000
+    timeout: 5000
+
+mybatis-plus:
+  type-aliases-package: com.qingfeng.**.entity,;com.qingfeng.**.entity.*
+  mapper-locations: classpath:mapper/*/*.xml
+  configuration:
+    jdbc-type-for-null: null
+    map-underscore-to-camel-case: false # 数据库下划线自动转驼峰标示关闭
+  global-config:
+    banner: false
+
+
+permittedIps: 127.0.0.1,localhost
+
+
+# actuator+prometheus+grafana+springboot2监控集成配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*' # 暴露/actuator/prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name} # 暴露的数据中添加application label
+
+ko-time:
+  pointcut: execution(public * com.qingfeng..*.*(..))

@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingfeng.system.mapper.UserMapper">
+
+    <!--数据权限-->
+    <sql id="authPageSql">
+        <!-- 数据权限 -->
+        <if test="(systemUser.auth_organize_ids == null or systemUser.auth_organize_ids.size == 0) and (systemUser.auth_user != null and systemUser.auth_user != '')">
+            and a.create_user=#{systemUser.auth_user}
+        </if>
+        <if test="systemUser.auth_organize_ids != null and systemUser.auth_organize_ids.size > 0">
+            and (a.create_user=#{systemUser.auth_user} or a.create_organize in
+            <foreach collection="systemUser.auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+                #{organize_id}
+            </foreach>
+            )
+        </if>
+    </sql>
+    <sql id="authObjSql">
+        <!-- 数据权限 -->
+        <if test="(auth_organize_ids == null or auth_organize_ids.size == 0) and (auth_user != null and auth_user != '')">
+            and a.create_user=#{auth_user}
+        </if>
+        <if test="auth_organize_ids != null and auth_organize_ids.size > 0">
+            and (a.create_user=#{auth_user} or a.create_organize in
+            <foreach collection="auth_organize_ids" item="organize_id" open="(" separator="," close=")">
+                #{organize_id}
+            </foreach>
+            )
+        </if>
+    </sql>
+
+    <!-- 查询用户分页列表 -->
+    <select id="findListPage" parameterType="systemUser" resultType="systemUser">
+        select
+            a.id as "id",
+            a.type as "type",
+            a.login_name as "login_name",
+            a.login_password as "login_password",
+            a.name as "name",
+            a.sex as "sex",
+            a.phone as "phone",
+            a.email as "email",
+            a.birth_date as "birth_date",
+            a.live_address as "live_address",
+            a.birth_address as "birth_address",
+            a.head_address as "head_address",
+            a.motto as "motto",
+            a.status as "status",
+            a.order_by as "order_by",
+            a.init_password as "init_password",
+            a.pwd_error_num as "pwd_error_num",
+            a.pwd_error_time as "pwd_error_time",
+            a.last_login_time as "last_login_time",
+            a.remark as "remark",
+            a.create_time as "create_time",
+            a.create_user as "create_user"
+            from system_user a
+            left join system_user_organize b on a.id=b.user_id
+            where 1=1
+            <if test="systemUser.name != null and systemUser.name != ''">
+                and a.name like concat('%',concat(#{systemUser.name},'%'))
+            </if>
+            <if test="systemUser.login_name != null and systemUser.login_name != ''">
+                and a.login_name like concat('%',concat(#{systemUser.login_name},'%'))
+            </if>
+            <if test="systemUser.phone != null and systemUser.phone != ''">
+                and a.phone like concat('%',concat(#{systemUser.phone},'%'))
+            </if>
+            <if test="systemUser.email != null and systemUser.email != ''">
+                and a.email like concat('%',concat(#{systemUser.email},'%'))
+            </if>
+            <if test="systemUser.sex != null and systemUser.sex != ''">
+                and a.sex = #{systemUser.sex}
+            </if>
+            <if test="systemUser.status != null and systemUser.status != ''">
+                and a.status = #{systemUser.status}
+            </if>
+            <if test="systemUser.organize_id != null and systemUser.organize_id != ''">
+                and b.organize_id = #{systemUser.organize_id}
+            </if>
+            <include refid="authPageSql"></include>
+            order by a.order_by+0 asc , a.create_time desc
+    </select>
+
+    <!-- 查询用户列表 -->
+    <select id="findList" parameterType="systemUser" resultType="systemUser">
+        select
+            a.id as "id",
+            a.type as "type",
+            a.login_name as "login_name",
+            a.login_password as "login_password",
+            a.name as "name",
+            a.sex as "sex",
+            a.phone as "phone",
+            a.email as "email",
+            a.birth_date as "birth_date",
+            a.live_address as "live_address",
+            a.birth_address as "birth_address",
+            a.head_address as "head_address",
+            a.motto as "motto",
+            a.status as "status",
+            a.order_by as "order_by",
+            a.init_password as "init_password",
+            a.pwd_error_num as "pwd_error_num",
+            a.pwd_error_time as "pwd_error_time",
+            a.last_login_time as "last_login_time",
+            a.remark as "remark",
+            a.create_time as "create_time",
+            a.create_user as "create_user"
+            from system_user a
+            left join system_user_organize b on a.id=b.user_id
+            where 1=1
+            <if test="name != null and name != ''">
+                and a.name like concat('%',concat(#{name},'%'))
+            </if>
+            <if test="login_name != null and login_name != ''">
+                and a.login_name like concat('%',concat(#{login_name},'%'))
+            </if>
+            <if test="phone != null and phone != ''">
+                and a.phone like concat('%',concat(#{phone},'%'))
+            </if>
+            <if test="email != null and email != ''">
+                and a.email like concat('%',concat(#{email},'%'))
+            </if>
+            <if test="sex != null and sex != ''">
+                and a.sex = #{sex}
+            </if>
+            <if test="status != null and status != ''">
+                and a.status = #{status}
+            </if>
+            <if test="organize_id != null and organize_id != ''">
+                and b.organize_id = #{organize_id}
+            </if>
+            <include refid="authObjSql"></include>
+            order by a.order_by+0 asc , a.create_time desc
+    </select>
+
+
+    <!--  查询用户列表，用户流程指定人  -->
+    <select id="findUserList" parameterType="com.qingfeng.utils.PageData" resultType="com.qingfeng.utils.PageData">
+        select
+        a.id as "id",
+        a.type as "type",
+        a.login_name as "login_name",
+        a.name as "name",
+        a.sex as "sex",
+        a.phone as "phone",
+        a.email as "email",
+        a.status as "status"
+        from system_user a
+        where 1=1
+        <if test="user_ids != null and user_ids.size > 0">
+            and  a.id in
+            <foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+                #{user_id}
+            </foreach>
+        </if>
+    </select>
+
+    <!--查询详情-->
+    <select id="findUserInfo" parameterType="com.qingfeng.utils.PageData" resultType="com.qingfeng.utils.PageData">
+        select
+        a.id as "id",
+        a.type as "type",
+        a.login_name as "login_name",
+        a.login_password as "login_password",
+        a.name as "name",
+        a.sex as "sex",
+        a.phone as "phone",
+        a.email as "email",
+        a.birth_date as "birth_date",
+        a.live_address as "live_address",
+        a.birth_address as "birth_address",
+        a.head_address as "head_address",
+        a.motto as "motto",
+        a.status as "status",
+        a.order_by as "order_by",
+        a.init_password as "init_password",
+        a.pwd_error_num as "pwd_error_num",
+        a.pwd_error_time as "pwd_error_time",
+        ifnull(a.depart_leader,'') as "depart_leader",
+        ifnull(a.direct_leader,'') as "direct_leader",
+        ifnull(a.branch_leader,'') as "branch_leader",
+        ifnull(c.name,'') as "depart_leader_name",
+        ifnull(d.name,'') as "direct_leader_name",
+        ifnull(e.name,'') as "branch_leader_name",
+        a.token as "token",
+        a.token_refresh_time as "token_refresh_time",
+        a.remark as "remark",
+        a.create_time as "create_time"
+        from system_user a
+        left join system_user c on a.depart_leader=c.id
+        left join system_user d on a.direct_leader=d.id
+        left join system_user e on a.branch_leader=e.id
+        where 1=1
+        <if test="login_name != null and login_name != ''">
+            and  (a.login_name = #{login_name} or a.id = #{login_name})
+        </if>
+        <if test="user_id != null and user_id != ''">
+            and  a.id = #{user_id}
+        </if>
+        <if test="token != null and token != ''">
+            and  a.token = #{token}
+        </if>
+        group by a.id
+    </select>
+
+
+    <select id="findUserRoleList" parameterType="com.qingfeng.utils.PageData" resultType="com.qingfeng.utils.PageData">
+        select
+        a.id as "id",
+        a.type as "type",
+        a.name as "name",
+        a.short_name as "short_name",
+        a.status as "status"
+        from system_role a
+        left join system_user_role b on a.id=b.role_id
+        where b.user_id=#{user_id} and a.status='0'
+        union all
+        select
+        a.id as "id",
+        a.type as "type",
+        a.name as "name",
+        a.short_name as "short_name",
+        a.status as "status"
+        from system_role a
+        left join system_organize_role b on a.id=b.role_id
+        where a.status='0' and b.organize_id in (
+        select organize_id from system_user_organize where user_id=#{user_id}
+        <if test="organize_id != null and organize_id != ''">
+            and organize_id = #{organize_id}
+        </if>
+        )
+    </select>
+
+    <select id="findUserOrganizeInfo" parameterType="com.qingfeng.utils.PageData" resultType="com.qingfeng.utils.PageData">
+        select
+        a.id as "id",
+        a.user_id as "user_id",
+        a.organize_id as "organize_id",
+        a.type as "type",
+        a.position as "position",
+        a.authOrgIds as "authOrgIds",
+        a.authParams as "authParams",
+        a.use_status as "use_status",
+        a.order_by as "order_by",
+        a.create_user as "create_user",
+        a.create_time as "create_time",
+        a.update_time as "update_time",
+        b.name as "organize_name",
+        b.org_cascade as "org_cascade"
+        from system_user_organize a
+        left join system_organize b on a.organize_id = b.id
+        where 1=1
+        <if test="user_id != null and user_id != ''">
+            and a.user_id = #{user_id}
+        </if>
+        <if test="organize_id != null and organize_id != ''">
+            and a.organize_id = #{organize_id}
+        </if>
+        order by a.use_status+0 asc,a.order_by+0 asc,a.type+0 asc
+        limit 1
+    </select>
+
+
+    <!--删除用户角色-->
+    <delete id="delUserRole" parameterType="com.qingfeng.utils.PageData">
+        delete from system_user_role where 1=1
+        <if test="user_id != null and user_id != ''">
+            and user_id = #{user_id}
+        </if>
+        <if test="user_ids != null and user_ids.size > 0">
+            and user_id in
+            <foreach collection="user_ids" item="user_id" open="(" separator="," close=")">
+                #{user_id}
+            </foreach>
+        </if>
+
+    </delete>
+
+
+    <!--更新用户组织信息-->
+    <update id="updateUserOrgUseStatus" parameterType="com.qingfeng.utils.PageData">
+        update system_user_organize set
+        <if test="use_status != null">use_status=#{use_status},</if>
+        update_time=#{update_time}
+        where 1=1
+        <if test="user_id != null and user_id != ''">
+            and user_id = #{user_id}
+        </if>
+        <if test="organize_id != null and organize_id != ''">
+            and organize_id = #{organize_id}
+        </if>
+    </update>
+
+</mapper>
